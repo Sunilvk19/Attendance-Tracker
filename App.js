@@ -1,117 +1,170 @@
+// Student data structure and storage
+const STORAGE_KEY = 'attendanceData';
 let students = [];
 
+// Initialize application
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    initializeDateControls();
+    updateClock();
+    setInterval(updateClock, 1000);
+});
+
+// Clock and Date Functions
+function updateClock() {
+    const timeDisplay = document.getElementById('currentTime');
+    const now = new Date();
+    timeDisplay.textContent = now.toLocaleString();
+}
+
+function initializeDateControls() {
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    
+    // Set current month
+    const currentDate = new Date();
+    monthSelect.value = currentDate.getMonth() + 1;
+    
+    // Populate years
+    const currentYear = currentDate.getFullYear();
+    for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) option.selected = true;
+        yearSelect.appendChild(option);
+    }
+}
+
+// Student Management Functions
 function addStudent() {
-    const nameInput = document.getElementById('name');
-    const name = nameInput.value.trim();
-    
-    if (name) {
-        if (!students.some(student => student.name === name)) {
-            students.push({
-                name: name,
-                attendance: false,
-                date: new Date().toLocaleDateString()
-            });
-            updateStudentList();
-            nameInput.value = '';
-        } else {
-            alert('Student already exists!');
-        }
-    } else {
-        alert('Please enter a name!');
+    const studentData = {
+        id: generateStudentId(),
+        name: document.getElementById('name').value.trim(),
+        age: document.getElementById('age').value,
+        gender: document.getElementById('gender').value,
+        grade: document.getElementById('grade').value,
+        attendance: {},
+        dateAdded: new Date().toISOString()
+    };
+
+    if (validateStudentData(studentData)) {
+        students.push(studentData);
+        saveData();
+        updateStudentList();
+        clearForm();
+        showNotification('Student added successfully!', 'success');
     }
 }
 
-function markAttendance() {
-    updateStudentList();
-}
-
-function viewAttendance() {
-    const attendanceStatus = document.getElementById('attendanceStatus');
-    if (students.length === 0) {
-        attendanceStatus.innerHTML = '<p>No students registered yet.</p>';
-        return;
+function validateStudentData(data) {
+    if (!data.name || !data.age || !data.gender || !data.grade) {
+        showNotification('Please fill all required fields!', 'error');
+        return false;
     }
     
-    const present = students.filter(student => student.attendance).length;
-    attendanceStatus.innerHTML = `
-        <h3>Today's Summary (${new Date().toLocaleDateString()})</h3>
-        <p>Total Students: ${students.length}</p>
-        <p>Present: ${present}</p>
-        <p>Absent: ${students.length - present}</p>
-    `;
+    if (students.some(student => student.name === data.name)) {
+        showNotification('Student already exists!', 'error');
+        return false;
+    }
+    
+    return true;
 }
 
-function toggleAttendance(index) {
-    students[index].attendance = !students[index].attendance;
-    students[index].date = new Date().toLocaleDateString();
-    updateStudentList();
+function generateStudentId() {
+    return 'STD' + Date.now().toString().slice(-6);
 }
 
-function removeStudent(index) {
-    students.splice(index, 1);
-    updateStudentList();
+// Attendance Management Functions
+function markAttendance(studentId, status) {
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+        const today = new Date().toISOString().split('T')[0];
+        student.attendance[today] = {
+            status: status,
+            timestamp: new Date().toISOString()
+        };
+        saveData();
+        updateStudentList();
+    }
 }
 
 function updateStudentList() {
-    const studentList = document.getElementById('studentList');
-    studentList.innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Attendance Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${students.map((student, index) => `
-                    <tr>
-                        <td>${student.name}</td>
-                        <td>${student.attendance ? 'Present' : 'Absent'}</td>
-                        <td>
-                            <button onclick="toggleAttendance(${index})">
-                                ${student.attendance ? 'Mark Absent' : 'Mark Present'}
-                            </button>
-                            <button onclick="removeStudent(${index})">Remove</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    const tbody = document.querySelector('#studentList tbody');
+    const today = new Date().toISOString().split('T')[0];
+    
+    tbody.innerHTML = students.map(student => `
+        <tr>
+            <td>${student.name}</td>
+            <td>${student.grade}</td>
+            <td>${student.attendance[today]?.status ? 'Present' : 'Absent'}</td>
+            <td>${student.attendance[today]?.timestamp ? new Date(student.attendance[today].timestamp).toLocaleTimeString() : '-'}</td>
+            <td>
+                <button onclick="markAttendance('${student.id}', true)" class="btn-success">Present</button>
+                <button onclick="markAttendance('${student.id}', false)" class="btn-danger">Absent</button>
+                <button onclick="viewStudentHistory('${student.id}')" class="btn-info">History</button>
+            </td>
+        </tr>
+    `).join('');
 }
-let attendanceChart;
 
+// Attendance History and Charts
 function showAttendanceHistory() {
     const modal = document.getElementById('historyModal');
     modal.style.display = 'block';
     
     const ctx = document.getElementById('attendanceChart').getContext('2d');
-    
-    // Destroy existing chart if it exists
-    if (attendanceChart) {
-        attendanceChart.destroy();
+    if (window.attendanceChart) {
+        window.attendanceChart.destroy();
     }
 
-    // Process attendance data
-    const attendanceData = processAttendanceData();
+    const data = processAttendanceData();
+    createAttendanceChart(ctx, data);
+}
 
-    // Create new chart
-    attendanceChart = new Chart(ctx, {
+function processAttendanceData() {
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const selectedMonth = parseInt(monthSelect.value);
+    const selectedYear = parseInt(yearSelect.value);
+    
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    const dates = Array.from({length: daysInMonth}, (_, i) => i + 1);
+    const presentCount = new Array(daysInMonth).fill(0);
+    const absentCount = new Array(daysInMonth).fill(0);
+
+    students.forEach(student => {
+        Object.entries(student.attendance).forEach(([date, record]) => {
+            const [year, month, day] = date.split('-').map(Number);
+            if (year === selectedYear && month === selectedMonth) {
+                if (record.status) {
+                    presentCount[day - 1]++;
+                } else {
+                    absentCount[day - 1]++;
+                }
+            }
+        });
+    });
+
+    return { dates, presentCount, absentCount };
+}
+
+function createAttendanceChart(ctx, data) {
+    window.attendanceChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: attendanceData.dates,
+            labels: data.dates,
             datasets: [
                 {
                     label: 'Present',
-                    data: attendanceData.presentCount,
+                    data: data.presentCount,
                     borderColor: '#2ecc71',
                     backgroundColor: 'rgba(46, 204, 113, 0.2)',
                     tension: 0.4
                 },
                 {
                     label: 'Absent',
-                    data: attendanceData.absentCount,
+                    data: data.absentCount,
                     borderColor: '#e74c3c',
                     backgroundColor: 'rgba(231, 76, 60, 0.2)',
                     tension: 0.4
@@ -125,26 +178,22 @@ function showAttendanceHistory() {
                 title: {
                     display: true,
                     text: 'Monthly Attendance Overview',
-                    font: {
-                        size: 16
-                    }
+                    font: { size: 16 }
                 },
-                legend: {
-                    position: 'bottom'
-                }
+                legend: { position: 'bottom' }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Number of Students'
+                    title: { 
+                        display: true, 
+                        text: 'Number of Students' 
                     }
                 },
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
+                    title: { 
+                        display: true, 
+                        text: 'Date' 
                     }
                 }
             }
@@ -152,52 +201,39 @@ function showAttendanceHistory() {
     });
 }
 
-function processAttendanceData() {
-    // Get selected month and year
-    const monthSelect = document.getElementById('monthSelect');
-    const yearSelect = document.getElementById('yearSelect');
-    const selectedMonth = parseInt(monthSelect.value);
-    const selectedYear = parseInt(yearSelect.value);
-
-    // Process data for the selected month
-    const dates = [];
-    const presentCount = [];
-    const absentCount = [];
-
-    // Get days in selected month
-    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        dates.push(day);
-
-        // Count present and absent for each day
-        let present = 0;
-        let absent = 0;
-
-        students.forEach(student => {
-            if (student.attendance[date]) {
-                if (student.attendance[date].status) {
-                    present++;
-                } else {
-                    absent++;
-                }
-            }
-        });
-
-        presentCount.push(present);
-        absentCount.push(absent);
-    }
-
-    return { dates, presentCount, absentCount };
+// Data Persistence Functions
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
 }
 
-// Add event listener for modal close button
-document.querySelector('.close').addEventListener('click', function() {
+function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        students = JSON.parse(saved);
+        updateStudentList();
+    }
+}
+
+// Utility Functions
+function clearForm() {
+    ['name', 'age', 'gender', 'grade'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// Event Listeners
+document.querySelector('.close')?.addEventListener('click', () => {
     document.getElementById('historyModal').style.display = 'none';
 });
 
-// Call showAttendanceHistory when viewing attendance
-function viewAttendance() {
+function changeMonth() {
     showAttendanceHistory();
 }
