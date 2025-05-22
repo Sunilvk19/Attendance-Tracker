@@ -4,32 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="App.js"></script>
+    <script src="App.js" defer></script>
     <title>Attendance-Tracker</title>
 </head>
 <body>
     <div class="container">
-        <h1>Attendance Tracker</h1>
-        <input type="text" id="name" placeholder="Enter your name">
-        <button onclick="addStudent()">AddStudent</button>
-        <button onclick="markAttendance()">Mark Attendance</button>
-        <button onclick="viewAttendance()">View Attendance</button>
+        <header>
+            <h1>Attendance Tracker</h1>
+            <div id="currentTime" class="clock"></div>
+            <div class="month-selector">
+                <label for="monthSelect">Select Month:</label>
+                <select id="monthSelect" onchange="changeMonth()">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select id="yearSelect" onchange="changeMonth()">
+                    <!-- Years will be populated by JavaScript -->
+                    <script>
+                        const yearSelect = document.getElementById('yearSelect');
+                        const currentYear = new Date().getFullYear();
+                        for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+                            const option = document.createElement('option');
+                            option.value = i;
+                            option.textContent = i;
+                            yearSelect.appendChild(option);
+                        }
+                    </script>
+                </select>
+            </div>
+        </header>
 
-        <div id="attendanceList">
-            <h2>Attendance List</h2>
-            <ul id="studentList">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name: </th>
-                            <th>Attendance Status: </th>
-                            <th>Actions: </th>
-                        </tr>
-                    </thead>
-                </table>
-            </ul>
+        <main>
+            <section class="input-section">
+                <input type="text" id="name" placeholder="Enter student name" required>
+                <button onclick="addStudent()" class="btn-primary">Add Student</button>
+            </section>
+            
+            <section class="controls">
+                <button onclick="markAttendance()" class="btn-success">Mark Attendance</button>
+                <button onclick="viewAttendance()" class="btn-info">View Attendance</button>
+                <button onclick="exportAttendance()" class="btn-secondary">Export Data</button>
+            </section>
+
+            <section id="attendanceList">
+                <h2>Attendance List</h2>
+                <div class="table-responsive">
+                    <table id="studentList">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content will be inserted here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="attendanceStatus" class="summary-section">
+                <!-- Attendance summary will be displayed here -->
+            </section>
+        </main>
+
+        <footer>
+            <p>Daily Attendance Records - <span id="currentDate"></span></p>
+        </footer>
+    </div>
+
+    <!-- Modal for displaying detailed attendance history -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Attendance History</h2>
+            <div id="historyContent"></div>
         </div>
-        <div id="attendanceStatus"></div>
     </div>
 </body>
 </html>
