@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="App.js" defer></script>
+    <title>Add Student - Attendance Tracker</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add New Student</h1>
+            <nav class="navigation">
+                <a href="index.html" class="nav-link">Back to Attendance</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="add-student-form">
+                <h2>Student Registration Form</h2>
+                <div class="form-group">
+                    <div class="form-field">
+                        <label for="studentId">Student ID*</label>
+                        <input type="text" id="studentId" placeholder="Enter Student ID" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="name">Full Name*</label>
+                        <input type="text" id="name" placeholder="Enter Full Name" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="age">Age*</label>
+                        <input type="number" id="age" placeholder="Age" min="15" max="30" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="grade">Grade*</label>
+                        <select id="grade" required>
+                            <option value="">Select Grade</option>
+                            <option value="A">Grade A</option>
+                            <option value="B">Grade B</option>
+                            <option value="C">Grade C</option>
+                            <option value="D">Grade D</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="10-digit number" pattern="[0-9]{10}">
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="email@example.com">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button onclick="addStudent()" class="btn-primary">Add Student</button>
+                    <button onclick="clearForm()" class="btn-secondary">Clear Form</button>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
