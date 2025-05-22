@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <script src="App.js" defer></script>
     <title>Attendance-Tracker</title>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -45,12 +47,8 @@
         </header>
 
         <main>
-            <section class="input-section">
-                <input type="text" id="name" placeholder="Enter student name" required>
-                <button onclick="addStudent()" class="btn-primary">Add Student</button>
-            </section>
-            
             <section class="controls">
+                <a href="student.html" class="btn-primary">Add New Student</a>
                 <button onclick="markAttendance()" class="btn-success">Mark Attendance</button>
                 <button onclick="viewAttendance()" class="btn-info">View Attendance</button>
                 <button onclick="exportAttendance()" class="btn-secondary">Export Data</button>
@@ -95,4 +93,5 @@
         </div>
     </div>
 </body>
+
 </html>
