@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="App.js"></script>
+    <title>Attendance-Tracker</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Tracker</h1>
+        <input type="text" id="name" placeholder="Enter your name">
+        <button onclick="addStudent()">AddStudent</button>
+        <button onclick="markAttendance()">Mark Attendance</button>
+        <button onclick="viewAttendance()">View Attendance</button>
+
+        <div id="attendanceList">
+            <h2>Attendance List</h2>
+            <ul id="studentList">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name: </th>
+                            <th>Attendance Status: </th>
+                            <th>Actions: </th>
+                        </tr>
+                    </thead>
+                </table>
+            </ul>
+        </div>
+        <div id="attendanceStatus"></div>
+    </div>
+</body>
+</html>
