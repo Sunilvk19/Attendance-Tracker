@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="App.js" defer></script>
     <title>Attendance-Tracker</title>
 </head>
@@ -89,6 +90,9 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Attendance History</h2>
+            <div class="graph-container">
+                <canvas id="attendanceChart"></canvas>
+            </div>
             <div id="historyContent"></div>
         </div>
     </div>
