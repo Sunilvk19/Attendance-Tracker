@@ -96,8 +96,9 @@ function updateStudentList() {
     tbody.innerHTML = students.map(student => `
         <tr>
             <td>${student.name}</td>
-            <td>${student.grade}</td>
-            <td>${student.attendance[today]?.status ? 'Present' : 'Absent'}</td>
+            <td>${student.age}</td>
+            <td>${student.dateAdded ? new Date(student.dateAdded).toLocaleDateString() : '-'}</td>
+            <td>${student.attendance[today]?.status ? 'Present' : '---'}</td>
             <td>${student.attendance[today]?.timestamp ? new Date(student.attendance[today].timestamp).toLocaleTimeString() : '-'}</td>
             <td>
                 <button onclick="markAttendance('${student.id}', true)" class="btn-success">Present</button>
