@@ -13,26 +13,32 @@ document.addEventListener('DOMContentLoaded', () => {
 // Clock and Date Functions
 function updateClock() {
     const timeDisplay = document.getElementById('currentTime');
-    const now = new Date();
-    timeDisplay.textContent = now.toLocaleString();
+    if (timeDisplay) {
+        const now = new Date();
+        timeDisplay.textContent = now.toLocaleString();
+    }
 }
 
 function initializeDateControls() {
     const monthSelect = document.getElementById('monthSelect');
     const yearSelect = document.getElementById('yearSelect');
     
-    // Set current month
+    if (!monthSelect || !yearSelect) return;
+
     const currentDate = new Date();
-    monthSelect.value = currentDate.getMonth() + 1;
-    
-    // Populate years
+    const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
-    for (let year = currentYear - 5; year <= currentYear + 5; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        if (year === currentYear) option.selected = true;
-        yearSelect.appendChild(option);
+
+    monthSelect.value = currentMonth.toString();
+
+    if (yearSelect.children.length === 0) {
+        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === currentYear) option.selected = true;
+            yearSelect.appendChild(option);
+        }
     }
 }
 
@@ -72,25 +78,13 @@ function validateStudentData(data) {
 }
 
 function generateStudentId() {
-    return 'STD' + Date.now().toString().slice(-6);
-}
-
-// Attendance Management Functions
-function markAttendance(studentId, status) {
-    const student = students.find(s => s.id === studentId);
-    if (student) {
-        const today = new Date().toISOString().split('T')[0];
-        student.attendance[today] = {
-            status: status,
-            timestamp: new Date().toISOString()
-        };
-        saveData();
-        updateStudentList();
-    }
+    return 'STD' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
 }
 
 function updateStudentList() {
     const tbody = document.querySelector('#studentList tbody');
+    if (!tbody) return;
+
     const today = new Date().toISOString().split('T')[0];
     
     tbody.innerHTML = students.map(student => `
@@ -103,10 +97,100 @@ function updateStudentList() {
             <td>
                 <button onclick="markAttendance('${student.id}', true)" class="btn-success">Present</button>
                 <button onclick="markAttendance('${student.id}', false)" class="btn-danger">Absent</button>
-                <button onclick="viewStudentHistory('${student.id}')" class="btn-info">History</button>
             </td>
         </tr>
     `).join('');
+}
+
+function markAttendance(studentId, isPresent) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    student.attendance[today] = {
+        status: isPresent,
+        timestamp: new Date().toISOString()
+    };
+
+    saveData();
+    updateStudentList();
+    showNotification(`${student.name} marked as ${isPresent ? 'Present' : 'Absent'}`, 'success');
+}
+
+function viewAttendance() {
+    const modal = document.getElementById('attendanceModal');
+    const tableBody = document.querySelector('#monthlyAttendanceTable tbody');
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearSelect').value);
+
+    if (!modal || !tableBody) return;
+
+    tableBody.innerHTML = ''; // Clear previous
+    let hasData = false;
+
+    students.forEach(student => {
+        Object.entries(student.attendance).forEach(([date, record]) => {
+            const [y, m, d] = date.split('-').map(Number);
+            if (y === year && m === month) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.name}</td>
+                    <td>${date}</td>
+                    <td>${record.status ? 'Present' : 'Absent'}</td>
+                    <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+                `;
+                tableBody.appendChild(row);
+                hasData = true;
+            }
+        });
+    });
+
+    if (!hasData) {
+        tableBody.innerHTML = `<tr><td colspan="4">No attendance records for this month.</td></tr>`;
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeAttendanceModal() {
+    document.getElementById('attendanceModal').style.display = 'none';
+}
+
+function viewStudentHistory(studentId) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const historyTitle = document.getElementById('historyTitle');
+    const tableBody = document.querySelector('#studentHistoryTable tbody');
+    const modal = document.getElementById('studentHistoryModal');
+
+    if (!historyTitle || !tableBody || !modal) return;
+
+    historyTitle.textContent = `Attendance History for ${student.name}`;
+    tableBody.innerHTML = '';
+
+    const attendanceEntries = Object.entries(student.attendance)
+        .sort(([a], [b]) => new Date(b) - new Date(a));
+
+    if (attendanceEntries.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3">No attendance records found.</td></tr>';
+    } else {
+        attendanceEntries.forEach(([date, record]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${record.status ? 'Present' : 'Absent'}</td>
+                <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeStudentHistory() {
+    document.getElementById('studentHistoryModal').style.display = 'none';
 }
 
 // Attendance History and Charts
@@ -114,7 +198,9 @@ function showAttendanceHistory() {
     const modal = document.getElementById('historyModal');
     modal.style.display = 'block';
     
-    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    const ctx = document.getElementById('attendanceChart')?.getContext('2d');
+    if (!ctx) return;
+
     if (window.attendanceChart) {
         window.attendanceChart.destroy();
     }
@@ -186,23 +272,17 @@ function createAttendanceChart(ctx, data) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { 
-                        display: true, 
-                        text: 'Number of Students' 
-                    }
+                    title: { display: true, text: 'Number of Students' }
                 },
                 x: {
-                    title: { 
-                        display: true, 
-                        text: 'Date' 
-                    }
+                    title: { display: true, text: 'Date' }
                 }
             }
         }
     });
 }
 
-// Data Persistence Functions
+// Data Persistence
 function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
 }
@@ -215,10 +295,11 @@ function loadData() {
     }
 }
 
-// Utility Functions
+// Utilities
 function clearForm() {
     ['name', 'age', 'gender', 'grade'].forEach(id => {
-        document.getElementById(id).value = '';
+        const input = document.getElementById(id);
+        if (input) input.value = '';
     });
 }
 
@@ -238,3 +319,10 @@ document.querySelector('.close')?.addEventListener('click', () => {
 function changeMonth() {
     showAttendanceHistory();
 }
+
+// Optional: ESC to close modals
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    }
+});

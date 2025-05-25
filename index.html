@@ -50,7 +50,7 @@
         <main>
             <section class="controls">
                 <a href="student.html" class="btn-primary">Add New Student</a>
-                <button onclick="markAttendance()" class="btn-success">Mark Attendance</button>
+                <!-- <button onclick="markAttendance()" class="btn-success">Mark Attendance</button> -->
                 <button onclick="viewAttendance()" class="btn-info">View Attendance</button>
                 <button onclick="exportAttendance()" class="btn-secondary">Export Data</button>
             </section>
@@ -97,6 +97,29 @@
             <div id="historyContent"></div>
         </div>
     </div>
+
+    <div id="attendanceModal" class="modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background:white; margin:10% auto; padding:20px; width:90%; max-height:80vh; overflow:auto;">
+            <span class="close-attendance" onclick="closeAttendanceModal()"
+                style="float:right; cursor:pointer; font-size:20px;">&times;</span>
+            <h3>All Students - Monthly Attendance</h3>
+            <table border="1" style="width:100%; border-collapse:collapse;" id="monthlyAttendanceTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+
 </body>
 
 </html>
