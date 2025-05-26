@@ -60,8 +60,8 @@ function addStudent() {
         students.push(studentData);
         saveData();
         updateStudentList();
-        alert("Student added successfully!");
         clearForm();
+        showNotification('Student added successfully!', 'success');
     }
 }
 
@@ -79,6 +79,37 @@ function validateStudentData(data) {
     return true;
 }
 
+// Add this function to your file
+function showConfirmModal(studentData, onConfirm) {
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Confirm Student Details</h3>
+            <div class="student-details">
+                <p><strong>Name:</strong> ${studentData.name}</p>
+                <p><strong>Age:</strong> ${studentData.age}</p>
+                <p><strong>Gender:</strong> ${studentData.gender}</p>
+                <p><strong>Grade:</strong> ${studentData.grade}</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-success" id="confirmAdd">Confirm</button>
+                <button class="btn-danger" id="cancelAdd">Cancel</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('confirmAdd').onclick = () => {
+        onConfirm();
+        modal.remove();
+    };
+    document.getElementById('cancelAdd').onclick = () => {
+        showNotification('Student addition cancelled.', 'info');
+        modal.remove();
+    };
+}
+
 function generateStudentId() {
     return 'STD' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
 }
@@ -88,20 +119,27 @@ function updateStudentList() {
     if (!tbody) return;
 
     const today = new Date().toISOString().split('T')[0];
+    const currentDate = new Date().toLocaleDateString();
     
-    tbody.innerHTML = students.map(student => `
+    tbody.innerHTML = students.map(student => {
+        const isPresent = student.attendance[today]?.status;
+        const attendanceStatus = isPresent ? 'Present' : 'Absent';
+        const statusColor = isPresent ? 'color: #2ecc71; font-weight: bold;' : 'color: #e74c3c; font-weight: bold;';
+        
+        return `
         <tr>
             <td>${student.name}</td>
             <td>${student.age}</td>
             <td>${student.dateAdded ? new Date(student.dateAdded).toLocaleDateString() : '-'}</td>
-            <td>${student.attendance[today]?.status ? 'Present' : 'Absent'}</td>
+            <td style="${statusColor}">${attendanceStatus}</td>
             <td>${student.attendance[today]?.timestamp ? new Date(student.attendance[today].timestamp).toLocaleTimeString() : '-'}</td>
+            <td>${currentDate}</td>
             <td>
                 <button onclick="markAttendance('${student.id}', true)" class="btn-success">Present</button>
                 <button onclick="markAttendance('${student.id}', false)" class="btn-danger">Absent</button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function markAttendance(studentId, isPresent) {
