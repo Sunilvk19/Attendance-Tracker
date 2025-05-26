@@ -50,6 +50,8 @@ function addStudent() {
         age: document.getElementById('age').value,
         gender: document.getElementById('gender').value,
         grade: document.getElementById('grade').value,
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
         attendance: {},
         dateAdded: new Date().toISOString()
     };
@@ -58,19 +60,19 @@ function addStudent() {
         students.push(studentData);
         saveData();
         updateStudentList();
+        alert("Student added successfully!");
         clearForm();
-        showNotification('Student added successfully!', 'success');
     }
 }
 
 function validateStudentData(data) {
     if (!data.name || !data.age || !data.gender || !data.grade) {
-        showNotification('Please fill all required fields!', 'error');
+        alert('Please fill all required fields!', 'error');
         return false;
     }
     
     if (students.some(student => student.name === data.name)) {
-        showNotification('Student already exists!', 'error');
+        alert('Student already exists!', 'error');
         return false;
     }
     
@@ -114,7 +116,7 @@ function markAttendance(studentId, isPresent) {
 
     saveData();
     updateStudentList();
-    showNotification(`${student.name} marked as ${isPresent ? 'Present' : 'Absent'}`, 'success');
+    showNotification(`${student.name} marked as ${isPresent ? 'Present' : 'Absent'}`, '---');
 }
 
 function viewAttendance() {
@@ -297,7 +299,7 @@ function loadData() {
 
 // Utilities
 function clearForm() {
-    ['name', 'age', 'gender', 'grade'].forEach(id => {
+    ['id','name', 'age', 'gender', 'grade','phone','email'].forEach(id => {
         const input = document.getElementById(id);
         if (input) input.value = '';
     });
