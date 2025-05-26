@@ -61,7 +61,7 @@ function addStudent() {
         saveData();
         updateStudentList();
         clearForm();
-        showNotification('Student added successfully!', 'success');
+        alert('Student added successfully!');
     }
 }
 
@@ -105,7 +105,7 @@ function showConfirmModal(studentData, onConfirm) {
         modal.remove();
     };
     document.getElementById('cancelAdd').onclick = () => {
-        showNotification('Student addition cancelled.', 'info');
+        alert('Student addition cancelled.');
         modal.remove();
     };
 }
@@ -123,7 +123,7 @@ function updateStudentList() {
     
     tbody.innerHTML = students.map(student => {
         const isPresent = student.attendance[today]?.status;
-        const attendanceStatus = isPresent ? 'Present' : 'Absent';
+        const attendanceStatus = isPresent === undefined ? '---' : (isPresent ? 'Present' : 'Absent');
         const statusColor = isPresent ? 'color: #2ecc71; font-weight: bold;' : 'color: #e74c3c; font-weight: bold;';
         
         return `
