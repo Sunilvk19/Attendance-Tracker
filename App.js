@@ -61,18 +61,18 @@ function addStudent() {
         saveData();
         updateStudentList();
         clearForm();
-        showNotification('Student added successfully!', 'success');
+        alert('Student added successfully!');
     }
 }
 
 function validateStudentData(data) {
     if (!data.name || !data.age || !data.gender || !data.grade) {
-        alert('Please fill all required fields!', 'error');
+        alert('Please fill all required fields!');
         return false;
     }
     
     if (students.some(student => student.name === data.name)) {
-        alert('Student already exists!', 'error');
+        alert('Student already exists!');
         return false;
     }
     
@@ -203,59 +203,6 @@ function closeAttendanceModal() {
     document.getElementById('attendanceModal').style.display = 'none';
 }
 
-function viewStudentHistory(studentId) {
-    const student = students.find(s => s.id === studentId);
-    if (!student) return;
-
-    const historyTitle = document.getElementById('historyTitle');
-    const tableBody = document.querySelector('#studentHistoryTable tbody');
-    const modal = document.getElementById('studentHistoryModal');
-
-    if (!historyTitle || !tableBody || !modal) return;
-
-    historyTitle.textContent = `Attendance History for ${student.name}`;
-    tableBody.innerHTML = '';
-
-    const attendanceEntries = Object.entries(student.attendance)
-        .sort(([a], [b]) => new Date(b) - new Date(a));
-
-    if (attendanceEntries.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3">No attendance records found.</td></tr>';
-    } else {
-        attendanceEntries.forEach(([date, record]) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${date}</td>
-                <td>${record.status ? 'Present' : 'Absent'}</td>
-                <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    modal.style.display = 'block';
-}
-
-function closeStudentHistory() {
-    document.getElementById('studentHistoryModal').style.display = 'none';
-}
-
-// Attendance History and Charts
-function showAttendanceHistory() {
-    const modal = document.getElementById('historyModal');
-    modal.style.display = 'block';
-    
-    const ctx = document.getElementById('attendanceChart')?.getContext('2d');
-    if (!ctx) return;
-
-    if (window.attendanceChart) {
-        window.attendanceChart.destroy();
-    }
-
-    const data = processAttendanceData();
-    createAttendanceChart(ctx, data);
-}
-
 function processAttendanceData() {
     const monthSelect = document.getElementById('monthSelect');
     const yearSelect = document.getElementById('yearSelect');
@@ -281,52 +228,6 @@ function processAttendanceData() {
     });
 
     return { dates, presentCount, absentCount };
-}
-
-function createAttendanceChart(ctx, data) {
-    window.attendanceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.dates,
-            datasets: [
-                {
-                    label: 'Present',
-                    data: data.presentCount,
-                    borderColor: '#2ecc71',
-                    backgroundColor: 'rgba(46, 204, 113, 0.2)',
-                    tension: 0.4
-                },
-                {
-                    label: 'Absent',
-                    data: data.absentCount,
-                    borderColor: '#e74c3c',
-                    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Monthly Attendance Overview',
-                    font: { size: 16 }
-                },
-                legend: { position: 'bottom' }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Number of Students' }
-                },
-                x: {
-                    title: { display: true, text: 'Date' }
-                }
-            }
-        }
-    });
 }
 
 // Data Persistence
