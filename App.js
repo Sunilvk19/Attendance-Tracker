@@ -169,24 +169,32 @@ function viewAttendance() {
     let hasData = false;
 
     students.forEach(student => {
+        let totalDays = 0;
+        let presentDays = 0;
+
         Object.entries(student.attendance).forEach(([date, record]) => {
             const [y, m, d] = date.split('-').map(Number);
             if (y === year && m === month) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.name}</td>
-                    <td>${date}</td>
-                    <td>${record.status ? 'Present' : 'Absent'}</td>
-                    <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
-                `;
-                tableBody.appendChild(row);
-                hasData = true;
+                totalDays++;
+                if (record.status) presentDays++;
             }
         });
+
+        if (totalDays > 0) {
+            const percentage = ((presentDays / totalDays) * 100).toFixed(2);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${student.name}</td>
+                <td>${year}-${String(month).padStart(2, '0')}</td>
+                <td>${percentage}%</td>
+            `;
+            tableBody.appendChild(row);
+            hasData = true;
+        }
     });
 
     if (!hasData) {
-        tableBody.innerHTML = `<tr><td colspan="4">No attendance records for this month.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3">No attendance data available for this month.</td></tr>`;
     }
 
     modal.style.display = 'block';
