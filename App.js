@@ -57,13 +57,11 @@ function addStudent() {
     };
 
     if (validateStudentData(studentData)) {
-        showConfirmModal(studentData, () => {
-            students.push(studentData);
-            saveData();
-            updateStudentList();
-            clearForm();
-            showNotification('Student added successfully!', 'success');
-        });
+        students.push(studentData);
+        saveData();
+        updateStudentList();
+        clearForm();
+        showNotification('Student added successfully!', 'success');
     }
 }
 
@@ -107,7 +105,7 @@ function showConfirmModal(studentData, onConfirm) {
         modal.remove();
     };
     document.getElementById('cancelAdd').onclick = () => {
-        showNotification('Student addition cancelled.', 'info');
+        alert('Student addition cancelled.');
         modal.remove();
     };
 }
@@ -125,7 +123,7 @@ function updateStudentList() {
     
     tbody.innerHTML = students.map(student => {
         const isPresent = student.attendance[today]?.status;
-        const attendanceStatus = isPresent ? 'Present' : 'Absent';
+        const attendanceStatus = isPresent === undefined ? '---' : (isPresent ? 'Present' : 'Absent');
         const statusColor = isPresent ? 'color: #2ecc71; font-weight: bold;' : 'color: #e74c3c; font-weight: bold;';
         
         return `
@@ -142,6 +140,97 @@ function updateStudentList() {
             </td>
         </tr>
     `}).join('');
+}
+
+function markAttendance(studentId, isPresent) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    student.attendance[today] = {
+        status: isPresent,
+        timestamp: new Date().toISOString()
+    };
+
+    saveData();
+    updateStudentList();
+    showNotification(`${student.name} marked as ${isPresent ? 'Present' : 'Absent'}`, '---');
+}
+
+function viewAttendance() {
+    const modal = document.getElementById('attendanceModal');
+    const tableBody = document.querySelector('#monthlyAttendanceTable tbody');
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearSelect').value);
+
+    if (!modal || !tableBody) return;
+
+    tableBody.innerHTML = ''; // Clear previous
+    let hasData = false;
+
+    students.forEach(student => {
+        Object.entries(student.attendance).forEach(([date, record]) => {
+            const [y, m, d] = date.split('-').map(Number);
+            if (y === year && m === month) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.name}</td>
+                    <td>${date}</td>
+                    <td>${record.status ? 'Present' : 'Absent'}</td>
+                    <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+                `;
+                tableBody.appendChild(row);
+                hasData = true;
+            }
+        });
+    });
+
+    if (!hasData) {
+        tableBody.innerHTML = `<tr><td colspan="4">No attendance records for this month.</td></tr>`;
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeAttendanceModal() {
+    document.getElementById('attendanceModal').style.display = 'none';
+}
+
+function viewStudentHistory(studentId) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const historyTitle = document.getElementById('historyTitle');
+    const tableBody = document.querySelector('#studentHistoryTable tbody');
+    const modal = document.getElementById('studentHistoryModal');
+
+    if (!historyTitle || !tableBody || !modal) return;
+
+    historyTitle.textContent = `Attendance History for ${student.name}`;
+    tableBody.innerHTML = '';
+
+    const attendanceEntries = Object.entries(student.attendance)
+        .sort(([a], [b]) => new Date(b) - new Date(a));
+
+    if (attendanceEntries.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3">No attendance records found.</td></tr>';
+    } else {
+        attendanceEntries.forEach(([date, record]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${record.status ? 'Present' : 'Absent'}</td>
+                <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeStudentHistory() {
+    document.getElementById('studentHistoryModal').style.display = 'none';
 }
 
 // Attendance History and Charts

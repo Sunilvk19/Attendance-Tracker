@@ -115,11 +115,17 @@ input[type="text"] {
     color: white;
 }
 
-.controls .btn-success {
-    background-color: #2ecc71;
-    color: white;
+.btn-success {
+    /* background-color: #2ecc71; */
+    /* color: white; */
+    padding: 3px;
+    border-radius: 5px;
 }
-
+.btn-danger{
+    margin-left: 3px;
+    padding: 3px;
+    border-radius: 5px;
+}
 .controls .btn-info {
     background-color: #f1c40f;
     color: #2c3e50;
